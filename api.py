@@ -90,7 +90,7 @@ def vdmfml_parse_list(url):
         content = ''.join([x.text for x in message('a.fmllink')])
         up = int(message('div.date div.right_part span.dyn-vote-j-data').text())
         down = int(message('div.date div.right_part span span.dyn-vote-t-data').text())
-        results.append({'content': entity2unicode(content), 'up': up, 'down': down})
+        results.append({'content': entity2unicode(content).encode('iso-8859-1'), 'up': up, 'down': down})
     return results
 
 def vdm_parse_list(url):
@@ -99,12 +99,14 @@ def vdm_parse_list(url):
 @format
 def vdm_latest(request, page=1):
     return {'quotes': vdm_parse_list('/?page=%i' % page),
-            'state': {'page': page, 'previous': (page != 1), 'next': True}}
+            'state': {'page': page, 'previous': (page != 1), 'next': True,
+                      'gotopage': True}}
 
 @format
 def vdm_random(request):
     return {'quotes': vdm_parse_list('/aleatoire'),
-            'state': {'page': 1, 'previous': False, 'next': False}}
+            'state': {'page': 1, 'previous': False, 'next': False,
+                      'gotopage': False}}
 
 @format
 def vdm_top(request, type_='semaine'):
@@ -114,7 +116,8 @@ def vdm_top(request, type_='semaine'):
         types = {'day': 'jour', 'week': 'semaine', 'month': 'mois'}
         quotes = vdm_parse_list('/tops/top/%s' % types[type_])
     return {'quotes': quotes,
-            'state': {'page': 1, 'previous': False, 'next': False}}
+            'state': {'page': 1, 'previous': False, 'next': False,
+                      'gotopage': False}}
 
 ############
 
@@ -124,12 +127,14 @@ def fml_parse_list(url):
 @format
 def fml_latest(request, page=1):
     return {'quotes': fml_parse_list('/?page=%i' % page),
-            'state': {'page': page, 'previous': (page != 1), 'next': True}}
+            'state': {'page': page, 'previous': (page != 1), 'next': True,
+                      'gotopage': True}}
 
 @format
 def fml_random(request):
     return {'quotes': fml_parse_list('/random'),
-            'state': {'page': 1, 'previous': False, 'next': False}}
+            'state': {'page': 1, 'previous': False, 'next': False,
+                      'gotopage': False}}
 
 @format
 def fml_top(request, type_='week'):
@@ -138,7 +143,8 @@ def fml_top(request, type_='week'):
     else:
         quotes = fml_parse_list('/tops/top/%s' % type_)
     return {'quotes': quotes,
-            'state': {'page': 1, 'previous': False, 'next': False}}
+            'state': {'page': 1, 'previous': False, 'next': False,
+                      'gotopage': False}}
 
 ############
 
@@ -150,8 +156,8 @@ def dtc_parse_list(url):
         content = message('p.item-content a').html() \
                 .replace('<span class="decoration">', '') \
                 .replace('</span>', '') \
-                .replace('<br />', '\n') \
-                .strip()
+                .strip() \
+                .replace('<br />', '\n')
         up = int(message('p.item-meta a.voteplus').text().split(' ')[1])
         down = int(message('p.item-meta a.voteminus').text().split(' ')[1])
         results.append({'content': entity2unicode(content), 'up': up, 'down': down})
@@ -160,17 +166,20 @@ def dtc_parse_list(url):
 @format
 def dtc_latest(request, page='1'):
     return {'quotes': dtc_parse_list('/latest/%i.html' % page),
-            'state': {'page': page, 'previous': (page != 1), 'next': True}}
+            'state': {'page': page, 'previous': (page != 1), 'next': True,
+                      'gotopage': True}}
 
 @format
 def dtc_random(request):
     return {'quotes': dtc_parse_list('/random.html'),
-            'state': {'page': 1, 'previous': False, 'next': False}}
+            'state': {'page': 1, 'previous': False, 'next': False,
+                      'gotopage': False}}
 
 @format
 def dtc_top(request):
     return {'quotes': dtc_parse_list('/top50.html'),
-            'state': {'page': 1, 'previous': False, 'next': False}}
+            'state': {'page': 1, 'previous': False, 'next': False,
+                      'gotopage': False}}
 
 ############
 
@@ -190,17 +199,20 @@ def pebkac_parse_list(url):
 @format
 def pebkac_latest(request, page='1'):
     return {'quotes': pebkac_parse_list('/index.php?page=%i' % page),
-            'state': {'page': page, 'previous': (page != 1), 'next': True}}
+            'state': {'page': page, 'previous': (page != 1), 'next': True,
+                      'gotopage': True}}
 
 @format
 def pebkac_random(request):
     return {'quotes': pebkac_parse_list('/pebkac-aleatoires.html'),
-            'state': {'page': 1, 'previous': False, 'next': False}}
+            'state': {'page': 1, 'previous': False, 'next': False,
+                      'gotopage': False}}
 
 @format
 def pebkac_top(request):
     return {'quotes': pebkac_parse_list('/index.php?p=top'),
-            'state': {'page': 1, 'previous': False, 'next': False}}
+            'state': {'page': 1, 'previous': False, 'next': False,
+                      'gotopage': False}}
 
 ############
 
@@ -225,15 +237,18 @@ def bash_latest(request, page=None):
     else:
         quotes = bash_parse_list('/?latest')
     return {'quotes': quotes,
-            'state': {'page': page or 1, 'previous': (page != 1), 'next': True}}
+            'state': {'page': page or 1, 'previous': (page != 1), 'next': True,
+                      'gotopage': True}}
 
 @format
 def bash_random(request, great_only=False):
     return {'quotes': bash_parse_list('/?random' + ('1' if great_only else '')),
-            'state': {'page': 1, 'previous': False, 'next': False}}
+            'state': {'page': 1, 'previous': False, 'next': False,
+                      'gotopage': False}}
 
 @format
 def bash_top(request):
     return {'quotes': bash_parse_list('/?top'),
-            'state': {'page': 1, 'previous': False, 'next': False}}
+            'state': {'page': 1, 'previous': False, 'next': False,
+                      'gotopage': False}}
 
