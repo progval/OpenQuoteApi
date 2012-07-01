@@ -90,11 +90,12 @@ def vdmfml_parse_list(url):
         content = ''.join([x.text for x in message('a.fmllink')])
         up = int(message('div.date div.right_part span.dyn-vote-j-data').text())
         down = int(message('div.date div.right_part span span.dyn-vote-t-data').text())
-        results.append({'content': entity2unicode(content).encode('iso-8859-1'), 'up': up, 'down': down})
+        results.append({'content': entity2unicode(content), 'up': up, 'down': down})
     return results
 
 def vdm_parse_list(url):
-    return vdmfml_parse_list('http://www.viedemerde.fr' + url)
+    dict_ = vdmfml_parse_list('http://www.viedemerde.fr' + url)
+    dict_['content'] = dict_['content'].encode('iso-8859-1')
 
 @format
 def vdm_latest(request, page=1):
