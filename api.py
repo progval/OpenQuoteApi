@@ -94,8 +94,10 @@ def vdmfml_parse_list(url):
     return results
 
 def vdm_parse_list(url):
-    dict_ = vdmfml_parse_list('http://www.viedemerde.fr' + url)
-    dict_['content'] = dict_['content'].encode('iso-8859-1')
+    list_ = vdmfml_parse_list('http://www.viedemerde.fr' + url)
+    for quote in list_:
+        quote['content'] = quote['content'].encode('iso-8859-1')
+    return list_
 
 @format
 def vdm_latest(request, page=1):
