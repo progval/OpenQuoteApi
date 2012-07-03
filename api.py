@@ -195,7 +195,7 @@ def pebkac_parse_list(url):
                 .replace('<br />', '\n') \
                 .split('<a', 1)[0] \
                 .strip()
-        score = int(message('span.scoreSup').text())
+        score = int(message('td.pebkacLeft span').text())
         results.append({'content': entity2unicode(content), 'score': score})
     return results
 
