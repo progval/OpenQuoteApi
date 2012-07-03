@@ -192,8 +192,9 @@ def pebkac_parse_list(url):
     results = []
     for message in messages:
         content = message('td.pebkacContent').html() \
-                .replace('<br />', '\n') \
+                .replace('<br />', '') \
                 .split('<a', 1)[0] \
+                .replace('&#13;', '') \
                 .strip()
         score = int(message('td.pebkacLeft span').text())
         results.append({'content': entity2unicode(content), 'score': score})
