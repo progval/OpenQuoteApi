@@ -87,10 +87,12 @@ def vdmfml_parse_list(url):
     messages = [pq(x) for x in d('div.post.article')]
     results = []
     for message in messages:
+        id_ = int(message('div.date div.left_part a').text()[1:])
         content = ''.join([x.text for x in message('a.fmllink')])
         up = int(message('div.date div.right_part span.dyn-vote-j-data').text())
         down = int(message('div.date div.right_part span span.dyn-vote-t-data').text())
-        results.append({'content': entity2unicode(content), 'up': up, 'down': down})
+        results.append({'id': id_, 'content': entity2unicode(content),
+            'up': up, 'down': down})
     return results
 
 def vdm_parse_list(url):
@@ -153,9 +155,10 @@ def fml_top(request, type_='week'):
 
 def dtc_parse_list(url):
     d = pq(url='http://danstonchat.com' + url)
-    messages = [pq(x) for x in d('div#content div.item.item1')]
+    messages = [pq(x) for x in d('div#content div.item')]
     results = []
     for message in messages:
+        id_ = int(message('p.item-meta span.item-infos').attr('id'))
         content = message('p.item-content a').html() \
                 .replace('<span class="decoration">', '') \
                 .replace('</span>', '') \
@@ -163,7 +166,8 @@ def dtc_parse_list(url):
                 .replace('<br />', '\n')
         up = int(message('p.item-meta a.voteplus').text().split(' ')[1])
         down = int(message('p.item-meta a.voteminus').text().split(' ')[1])
-        results.append({'content': entity2unicode(content), 'up': up, 'down': down})
+        results.append({'id': id_, 'content': entity2unicode(content),
+            'up': up, 'down': down})
     return results
 
 @format
@@ -191,13 +195,15 @@ def pebkac_parse_list(url):
     messages = [pq(x) for x in d('table.pebkacMiddle')]
     results = []
     for message in messages:
+        id_ = int(message('td.pebkacContent a.permalink').attr('href')[len('./pebkac-'):-len('.html')])
         content = message('td.pebkacContent').html() \
                 .replace('<br />', '') \
                 .split('<a', 1)[0] \
                 .replace('&#13;', '') \
                 .strip()
-        score = int(message('td.pebkacLeft span').text())
-        results.append({'content': entity2unicode(content), 'score': score})
+        note = int(message('td.pebkacLeft span').text())
+        results.append({'id': id_, 'content': entity2unicode(content),
+            'note': note})
     return results
 
 @format
@@ -225,19 +231,21 @@ def bash_parse_list(url):
     messages = zip([pq(x) for x in d('p.quote')], [pq(x) for x in d('p.qt')])
     results = []
     for metadata, content in messages:
+        id_ = int(metadata('a').attr('href')[1:])
         content = content.html() \
                 .replace('\n', '') \
                 .replace('\r', '') \
                 .replace('<br/>', '\n')
-        score = int(metadata.text().split('(')[1].split(')')[0])
-        results.append({'content': unescape(content), 'score': score})
+        note = int(metadata.text().split('(')[1].split(')')[0])
+        results.append({'id': id_, 'content': unescape(content),
+            'note': note})
     return results
 
 @format
 def bash_latest(request, page=None):
-    if number:
+    if page:
         # Search > and order by number
-        quotes = bash_parse_list('/?search=%3E&sort=1&show=%i' % page)
+        quotes = bash_parse_list('/?search=%%3E&sort=1&show=%i' % page)
     else:
         quotes = bash_parse_list('/?latest')
     return {'quotes': quotes,
