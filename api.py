@@ -22,10 +22,10 @@ unescape = HTMLParser.HTMLParser().unescape
 ############
 
 SITES = {
-        'vdm': 'Vie de merde',
-        'fml': 'Fuck my life',
         'dtc': 'Dans ton chat',
         'pebkac': 'Pebkac',
+        'vdm': 'Vie de merde',
+        'fml': 'Fuck my life',
         'bash': 'bash.org',
         }
 FIELDS = ['site', 'mode', 'type', 'page']
