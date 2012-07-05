@@ -17,6 +17,11 @@ def entity2unicode(text):
         text = text.replace('&%s;' % entity, iso.decode('iso-8859-1'))
     return text
 
+def recursive_comment_encoder(comments, encoding):
+    for comment in comments:
+        comment['content'] = comment['content'].encode(encoding)
+        recursive_comment_encoder(comment['replies'], encoding)
+
 unescape = HTMLParser.HTMLParser().unescape
 
 ############
@@ -28,7 +33,7 @@ SITES = {
         'fml': 'Fuck my life',
         'bash': 'bash.org',
         }
-FIELDS = ['site', 'mode', 'type', 'page']
+FIELDS = ['site', 'mode', 'type', 'page', 'id']
 
 @format
 def list_sites(request):
@@ -56,7 +61,8 @@ def state_url(request):
 
     # Check the site is valid
     if 'site' not in state:
-        return {'status': 'error', 'message': 'No \'site\' attribute.'}
+        return {'status': 'error', 'message': 'Missing fields.',
+                'data': ['site']}
     if state['site'] not in SITES:
         return {'status': 'error', 'message': 'No \'%s\' is not a valid site.'%
                 state['site']}
@@ -73,6 +79,19 @@ def state_url(request):
             state['type'] = 'week' if state['site'] == 'fml' else 'semaine'
         if state['type'] not in ('ever', 'toujours'):
             url += '%s/' % state['type']
+
+    if state['mode'] == 'show':
+        if 'id' not in state:
+            return {'status': 'error', 'message': 'Missing fields.',
+                    'data': ['id']}
+        if len(state):
+            return {'status': 'error', 'message': 'Some fields are not relevant',
+                    'data': [x for x in state if x != 'id']}
+        url += '%s/' % state['id']
+    else:
+        if 'id' in state:
+            return {'status': 'error', 'message': 'Some fields are not relevant.',
+                    'data': ['id']}
 
     # Append the page number, if any
     if state['mode'] not in ('top', 'random') and 'page' in state:
@@ -94,6 +113,31 @@ def vdmfml_parse_list(url):
         results.append({'id': id_, 'content': entity2unicode(content),
             'up': up, 'down': down})
     return results
+
+def vdmfml_show(quote_url, comments_url, id_):
+    id_ = int(id_)
+    d = pq(url=quote_url % id_)
+    quote = pq(d('div.post.article'))
+    content = ''.join([x.text for x in quote('a.fmllink')])
+    up = int(quote('span.dyn-vote-j-data').text())
+    down = int(quote('span.dyn-vote-t-data').text())
+    (date, category, author) = quote('div.right_part p').next().text().split(' - ', 2)
+    quote = {'id': id_, 'content': entity2unicode(content),
+        'author': author.split(' ', 3)[1],
+        'date': date,
+        'up': up, 'down': down}
+    d = pq(url=comments_url % id_)
+    comments = [pq(x) for x in d('div.post')]
+    results = []
+    for comment in comments:
+        result = {'content': comment('p.texte').text(),
+                'author': comment('b').text(),
+                'replies': []}
+        if comment.hasClass('reply'): # It's a reply
+            results[-1]['replies'].append(result)
+        else:
+            results.append(result)
+    return {'quote': quote, 'comments': results}
 
 def vdm_parse_list(url):
     list_ = vdmfml_parse_list('http://www.viedemerde.fr' + url)
@@ -124,6 +168,15 @@ def vdm_top(request, type_='semaine'):
             'state': {'page': 1, 'previous': False, 'next': False,
                       'gotopage': False}}
 
+@format
+def vdm_show(request, id_):
+    result = vdmfml_show('https://www.viedemerde.fr/inclassable/%i',
+            'https://www.viedemerde.fr/ajax/comments/display.php?type=articles&id=%i',
+            id_)
+    recursive_comment_encoder(result['comments'], 'iso-8859-1')
+    return result
+
+
 ############
 
 def fml_parse_list(url):
@@ -150,6 +203,12 @@ def fml_top(request, type_='week'):
     return {'quotes': quotes,
             'state': {'page': 1, 'previous': False, 'next': False,
                       'gotopage': False}}
+
+@format
+def fml_show(request, id_):
+    return vdmfml_show('https://www.fmylife.com/miscellaneous/%i',
+            'https://www.fmylife.com/ajax/comments/display.php?type=articles&id=%i',
+            id_)
 
 ############
 
@@ -188,6 +247,13 @@ def dtc_top(request):
             'state': {'page': 1, 'previous': False, 'next': False,
                       'gotopage': False}}
 
+@format
+def dtc_show(request, id_):
+    id_ = int(id_)
+    quote = dtc_parse_list('/%i.html' % id_)[0]
+    return {'quote': quote, 'comments': []}
+
+
 ############
 
 def pebkac_parse_list(url):
@@ -223,6 +289,32 @@ def pebkac_top(request):
     return {'quotes': pebkac_parse_list('/index.php?p=top'),
             'state': {'page': 1, 'previous': False, 'next': False,
                       'gotopage': False}}
+
+@format
+def pebkac_show(request, id_):
+    id_ = int(id_)
+    d = pq(url='http://www.pebkac.fr/pebkac-%i.html' % id_)
+    message = pq(d('td#tdContenu table.pebkacMiddle'))
+    content = message('td.pebkacContent').html() \
+            .replace('<br />', '') \
+            .split('<a', 1)[0] \
+            .replace('&#13;', '') \
+            .strip()
+    author = message('td.pebkacContent span.pebkacIdentifiant').text()
+    note = int(message('td.pebkacLeft span').text())
+
+    comments = [pq(x) for x in d('table.commentTable')]
+    results = []
+    for comment in comments:
+        content = comment('td.comContenu').text()
+        author = comment('td.infoCom2 span.comPosteur').text()
+        date = comment('td.infoCom2 span.comInfo').text()[2:]
+        results.append({'content': content, 'author': author, 'replies': []})
+    return {'quote': {'content': content, 'id': id_, 'note': note, 'author': author},
+            'comments': results}
+
+
+
 
 ############
 
@@ -264,3 +356,8 @@ def bash_top(request):
             'state': {'page': 1, 'previous': False, 'next': False,
                       'gotopage': False}}
 
+@format
+def bash_show(request, id_):
+    id_ = int(id_)
+    quote = bash_parse_list('/?%i' % id_)[0]
+    return {'quote': quote, 'comments': []}
