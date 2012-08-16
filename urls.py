@@ -37,4 +37,8 @@ urlpatterns = patterns('',
         url('^bash/quotes/random/great/$', bash_random, {'great_only': True}),
         url('^bash/quotes/top/$', bash_top),
         url('^bash/quotes/show/(?P<id_>[0-9]+)/', bash_show),
+
+        url('^xkcd/quotes/latest/$', xkcd_latest),
+        url('^xkcd/quotes/latest/(?P<page>[0-9]+)?/$', xkcd_latest),
+        url('^xkcd/quotes/show/(?P<id_>[0-9]+)/', xkcd_show),
         )

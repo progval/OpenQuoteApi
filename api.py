@@ -1,3 +1,7 @@
+import time
+import PIL
+import requests
+import threading
 import HTMLParser
 from django.http import HttpResponse
 from htmlentitydefs import entitydefs
@@ -32,6 +36,7 @@ SITES = {
         'vdm': 'Vie de merde',
         'fml': 'Fuck my life',
         'bash': 'bash.org',
+        'xkcd': 'xkcd',
         }
 FIELDS = ['site', 'mode', 'type', 'page', 'id']
 
@@ -361,3 +366,35 @@ def bash_show(request, id_):
     id_ = int(id_)
     quote = bash_parse_list('/?%i' % id_)[0]
     return {'quote': quote, 'comments': []}
+
+############
+
+@format
+def xkcd_latest(request, page=None):
+    if page is None:
+        page = 1
+    last = requests.get('http://xkcd.com/info.0.json').json['num']
+    results = []
+    found = [0]
+    def load(id_):
+        try:
+            data = requests.get('http://xkcd.com/%i/info.0.json' % id_).json
+            results.append({'id': data['num'], 'content': data['title'] + '\n\n' + data['alt'],
+                'image': data['img']})
+        finally:
+            found[0] += 1
+    for i in xrange((page-1)*10, (page)*10):
+        threading.Thread(target=load, args=(last-i,)).start()
+    while found[0] != 10:
+        time.sleep(0.1)
+    return {'quotes': results,
+            'state': {'page': page or 1, 'previous': (page != 1), 'next': True,
+                      'gotopage': True}}
+
+@format
+def xkcd_show(request, id_):
+    id_ = int(id_)
+    data = requests.get('http://xkcd.com/%i/info.0.json' % id_).json
+    return {'quote': {'id': id_, 'content': data['title'] + '\n\n' + data['alt'],
+                      'image': data['img']},
+            'comments': [], 'id': data['num']}
