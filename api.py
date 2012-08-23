@@ -1,5 +1,6 @@
 import time
 import PIL
+import urllib2
 import requests
 import threading
 import HTMLParser
@@ -261,8 +262,14 @@ def dtc_show(request, id_):
 
 ############
 
+def pebkac_pq(url):
+    opener = urllib2.build_opener()
+    opener.addheaders = [('User-agent', 'OpenQuoteApi')]
+    html = opener.open(url).read()
+    return pq(html)
+
 def pebkac_parse_list(url):
-    d = pq(url='http://www.pebkac.fr' + url)
+    d = pebkac_pq(url='http://www.pebkac.fr' + url)
     messages = [pq(x) for x in d('table.pebkacMiddle')]
     results = []
     for message in messages:
@@ -279,6 +286,7 @@ def pebkac_parse_list(url):
 
 @format
 def pebkac_latest(request, page='1'):
+    page = int(page)
     return {'quotes': pebkac_parse_list('/index.php?page=%i' % page),
             'state': {'page': page, 'previous': (page != 1), 'next': True,
                       'gotopage': True}}
@@ -298,7 +306,7 @@ def pebkac_top(request):
 @format
 def pebkac_show(request, id_):
     id_ = int(id_)
-    d = pq(url='http://www.pebkac.fr/pebkac-%i.html' % id_)
+    d = pebkac_pq(url='http://www.pebkac.fr/pebkac-%i.html' % id_)
     message = pq(d('td#tdContenu table.pebkacMiddle'))
     content = message('td.pebkacContent').html() \
             .replace('<br />', '') \
