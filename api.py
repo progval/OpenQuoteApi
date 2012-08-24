@@ -270,16 +270,17 @@ def pebkac_pq(url):
 
 def pebkac_parse_list(url):
     d = pebkac_pq(url='http://www.pebkac.fr' + url)
-    messages = [pq(x) for x in d('table.pebkacMiddle')]
+    messages = [pq(x) for x in d('article')]
     results = []
     for message in messages:
-        id_ = int(message('td.pebkacContent a.permalink').attr('href')[len('./pebkac-'):-len('.html')])
-        content = message('td.pebkacContent').html() \
-                .replace('<br />', '') \
+        id_ = int(message('header a.permalink').text()[1:])
+        content = message('p.content').html() \
+                .replace('<br/>', '') \
                 .split('<a', 1)[0] \
                 .replace('&#13;', '') \
                 .strip()
-        note = int(message('td.pebkacLeft span').text())
+        print repr(message('div.score span'))
+        note = int(message('div.score span').text())
         results.append({'id': id_, 'content': entity2unicode(content),
             'note': note})
     return results
@@ -307,21 +308,21 @@ def pebkac_top(request):
 def pebkac_show(request, id_):
     id_ = int(id_)
     d = pebkac_pq(url='http://www.pebkac.fr/pebkac-%i.html' % id_)
-    message = pq(d('td#tdContenu table.pebkacMiddle'))
-    content = message('td.pebkacContent').html() \
-            .replace('<br />', '') \
+    message = pq(d('article.pebkac'))
+    content = message('p.content').html() \
+            .replace('<br/>', '') \
             .split('<a', 1)[0] \
             .replace('&#13;', '') \
             .strip()
-    author = message('td.pebkacContent span.pebkacIdentifiant').text()
-    note = int(message('td.pebkacLeft span').text())
+    author = message('header span.author').text()
+    note = int(message('header div.score span').text())
 
-    comments = [pq(x) for x in d('table.commentTable')]
+    comments = [pq(x) for x in d('section#comments article')]
     results = []
     for comment in comments:
-        content = comment('td.comContenu').text()
-        author = comment('td.infoCom2 span.comPosteur').text()
-        date = comment('td.infoCom2 span.comInfo').text()[2:]
+        content = comment('div.text').text()
+        author = comment('header .author').text()
+        date = comment('footer div.time time').text()[2:]
         results.append({'content': content, 'author': author, 'replies': []})
     return {'quote': {'content': content, 'id': id_, 'note': note, 'author': author},
             'comments': results}
