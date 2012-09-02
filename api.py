@@ -10,6 +10,8 @@ import json
 
 from pyquery import PyQuery as pq
 
+from django.views.decorators.cache import cache_page
+
 def format(f):
     def newf(*args, **kwargs):
         if 'page' in kwargs:
@@ -279,12 +281,12 @@ def pebkac_parse_list(url):
                 .split('<a', 1)[0] \
                 .replace('&#13;', '') \
                 .strip()
-        print repr(message('div.score span'))
         note = int(message('div.score span').text())
         results.append({'id': id_, 'content': entity2unicode(content),
             'note': note})
     return results
 
+@cache_page(60 * 60 * 24)
 @format
 def pebkac_latest(request, page='1'):
     page = int(page)
@@ -292,18 +294,21 @@ def pebkac_latest(request, page='1'):
             'state': {'page': page, 'previous': (page != 1), 'next': True,
                       'gotopage': True}}
 
+@cache_page(60 * 60 * 24)
 @format
 def pebkac_random(request):
     return {'quotes': pebkac_parse_list('/pebkac-aleatoires.html'),
             'state': {'page': 1, 'previous': False, 'next': False,
                       'gotopage': False}}
 
+@cache_page(60 * 60 * 24)
 @format
 def pebkac_top(request):
     return {'quotes': pebkac_parse_list('/index.php?p=top'),
             'state': {'page': 1, 'previous': False, 'next': False,
                       'gotopage': False}}
 
+@cache_page(60 * 60 * 24)
 @format
 def pebkac_show(request, id_):
     id_ = int(id_)
