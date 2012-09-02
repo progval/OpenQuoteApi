@@ -153,18 +153,21 @@ def vdm_parse_list(url):
         quote['content'] = quote['content'].encode('iso-8859-1')
     return list_
 
+@cache_page(60)
 @format
 def vdm_latest(request, page=1):
     return {'quotes': vdm_parse_list('/?page=%i' % page),
             'state': {'page': page, 'previous': (page != 1), 'next': True,
                       'gotopage': True}}
 
+@cache_page(60)
 @format
 def vdm_random(request):
     return {'quotes': vdm_parse_list('/aleatoire'),
             'state': {'page': 1, 'previous': False, 'next': False,
                       'gotopage': False}}
 
+@cache_page(60)
 @format
 def vdm_top(request, type_='semaine'):
     if type_ == 'ever':
@@ -176,6 +179,7 @@ def vdm_top(request, type_='semaine'):
             'state': {'page': 1, 'previous': False, 'next': False,
                       'gotopage': False}}
 
+@cache_page(60)
 @format
 def vdm_show(request, id_):
     result = vdmfml_show('https://www.viedemerde.fr/inclassable/%i',
@@ -190,18 +194,21 @@ def vdm_show(request, id_):
 def fml_parse_list(url):
     return vdmfml_parse_list('http://www.fmylife.com' + url)
 
+@cache_page(60)
 @format
 def fml_latest(request, page=1):
     return {'quotes': fml_parse_list('/?page=%i' % page),
             'state': {'page': page, 'previous': (page != 1), 'next': True,
                       'gotopage': True}}
 
+@cache_page(60)
 @format
 def fml_random(request):
     return {'quotes': fml_parse_list('/random'),
             'state': {'page': 1, 'previous': False, 'next': False,
                       'gotopage': False}}
 
+@cache_page(60)
 @format
 def fml_top(request, type_='week'):
     if type_ == 'ever':
@@ -212,6 +219,7 @@ def fml_top(request, type_='week'):
             'state': {'page': 1, 'previous': False, 'next': False,
                       'gotopage': False}}
 
+@cache_page(60)
 @format
 def fml_show(request, id_):
     return vdmfml_show('https://www.fmylife.com/miscellaneous/%i',
@@ -237,24 +245,29 @@ def dtc_parse_list(url):
             'up': up, 'down': down})
     return results
 
+@cache_page(60)
 @format
 def dtc_latest(request, page='1'):
+    page = int(page)
     return {'quotes': dtc_parse_list('/latest/%i.html' % page),
             'state': {'page': page, 'previous': (page != 1), 'next': True,
                       'gotopage': True}}
 
+@cache_page(60)
 @format
 def dtc_random(request):
     return {'quotes': dtc_parse_list('/random.html'),
             'state': {'page': 1, 'previous': False, 'next': False,
                       'gotopage': False}}
 
+@cache_page(60)
 @format
 def dtc_top(request):
     return {'quotes': dtc_parse_list('/top50.html'),
             'state': {'page': 1, 'previous': False, 'next': False,
                       'gotopage': False}}
 
+@cache_page(60)
 @format
 def dtc_show(request, id_):
     id_ = int(id_)
@@ -352,6 +365,7 @@ def bash_parse_list(url):
             'note': note})
     return results
 
+@cache_page(60)
 @format
 def bash_latest(request, page=None):
     if page:
@@ -363,18 +377,21 @@ def bash_latest(request, page=None):
             'state': {'page': page or 1, 'previous': (page != 1), 'next': True,
                       'gotopage': True}}
 
+@cache_page(60)
 @format
 def bash_random(request, great_only=False):
     return {'quotes': bash_parse_list('/?random' + ('1' if great_only else '')),
             'state': {'page': 1, 'previous': False, 'next': False,
                       'gotopage': False}}
 
+@cache_page(60)
 @format
 def bash_top(request):
     return {'quotes': bash_parse_list('/?top'),
             'state': {'page': 1, 'previous': False, 'next': False,
                       'gotopage': False}}
 
+@cache_page(60)
 @format
 def bash_show(request, id_):
     id_ = int(id_)
@@ -383,6 +400,7 @@ def bash_show(request, id_):
 
 ############
 
+@cache_page(60)
 @format
 def xkcd_latest(request, page=None):
     if page is None:
@@ -405,6 +423,7 @@ def xkcd_latest(request, page=None):
             'state': {'page': page or 1, 'previous': (page != 1), 'next': True,
                       'gotopage': True}}
 
+@cache_page(60)
 @format
 def xkcd_show(request, id_):
     id_ = int(id_)
