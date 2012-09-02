@@ -286,7 +286,7 @@ def pebkac_parse_list(url):
             'note': note})
     return results
 
-@cache_page(60 * 60 * 24)
+@cache_page(60 * 60)
 @format
 def pebkac_latest(request, page='1'):
     page = int(page)
@@ -294,21 +294,21 @@ def pebkac_latest(request, page='1'):
             'state': {'page': page, 'previous': (page != 1), 'next': True,
                       'gotopage': True}}
 
-@cache_page(60 * 60 * 24)
+@cache_page(60 * 60)
 @format
 def pebkac_random(request):
     return {'quotes': pebkac_parse_list('/pebkac-aleatoires.html'),
             'state': {'page': 1, 'previous': False, 'next': False,
                       'gotopage': False}}
 
-@cache_page(60 * 60 * 24)
+@cache_page(60 * 60)
 @format
 def pebkac_top(request):
     return {'quotes': pebkac_parse_list('/index.php?p=top'),
             'state': {'page': 1, 'previous': False, 'next': False,
                       'gotopage': False}}
 
-@cache_page(60 * 60 * 24)
+@cache_page(60 * 60)
 @format
 def pebkac_show(request, id_):
     id_ = int(id_)
