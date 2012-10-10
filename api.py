@@ -196,7 +196,7 @@ def fml_parse_list(url):
 
 @cache_page(60)
 @format
-def fml_latest(request, page=1):
+def fml_latest(request, page=0):
     return {'quotes': fml_parse_list('/?page=%i' % page),
             'state': {'page': page, 'previous': (page != 1), 'next': True,
                       'gotopage': True}}
