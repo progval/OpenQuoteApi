@@ -271,8 +271,26 @@ def dtc_top(request):
 @format
 def dtc_show(request, id_):
     id_ = int(id_)
-    quote = dtc_parse_list('/%i.html' % id_)[0]
-    return {'quote': quote, 'comments': []}
+    d = pq(url='http://danstonchat.com/%i.html' % id_)
+    message = pq(d('div#content div.item'))
+    id_ = int(message('p.item-meta span.item-infos').attr('id'))
+    content = message('p.item-content a').html() \
+            .replace('<span class="decoration">', '') \
+            .replace('</span>', '') \
+            .strip() \
+            .replace('<br />', '\n')
+    up = int(message('p.item-meta a.voteplus').text().split(' ')[1])
+    down = int(message('p.item-meta a.voteminus').text().split(' ')[1])
+    quote = {'id': id_, 'content': entity2unicode(content),
+        'up': up, 'down': down}
+
+    comments = [pq(x) for x in d('div#comments div.comment')]
+    results = []
+    for comment in comments:
+        content = comment('div.comment-content p').text()
+        author = comment('div.comment-content a').attr('href')[len('/geek/'):-len('.html')]
+        results.append({'content': content, 'author': author})
+    return {'quote': quote, 'comments': results}
 
 
 ############
