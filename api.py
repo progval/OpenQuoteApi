@@ -150,7 +150,7 @@ def vdmfml_show(quote_url, comments_url, id_):
 def vdm_parse_list(url):
     list_ = vdmfml_parse_list('http://www.viedemerde.fr' + url)
     for quote in list_:
-        quote['content'] = quote['content'].encode('iso-8859-1')
+        quote['content'] = quote['content']
     return list_
 
 @cache_page(60)
