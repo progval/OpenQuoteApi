@@ -169,7 +169,7 @@ def vdm_random(request):
 
 @cache_page(60)
 @format
-def vdm_top(request, type_='semaine'):
+def vdm_top(request, type_='week'):
     if type_ == 'ever':
         quotes = vdm_parse_list('/tops/top/')
     else:
