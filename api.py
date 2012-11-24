@@ -114,12 +114,14 @@ def vdmfml_parse_list(url):
     messages = [pq(x) for x in d('div.post.article')]
     results = []
     for message in messages:
-        id_ = int(message('div.date div.left_part a').text()[1:])
+        link = message('div.date div.left_part a')
+        id_ = int(link.text()[1:])
+        quote_url = 'https://' + url.split('/')[2] + link.attr('href')
         content = ''.join([x.text for x in message('a.fmllink')])
         up = int(message('div.date div.right_part span.dyn-vote-j-data').text())
         down = int(message('div.date div.right_part span span.dyn-vote-t-data').text())
         results.append({'id': id_, 'content': entity2unicode(content),
-            'up': up, 'down': down})
+            'up': up, 'down': down, 'url': quote_url})
     return results
 
 def vdmfml_show(quote_url, comments_url, id_):
@@ -242,7 +244,8 @@ def dtc_parse_list(url):
         up = int(message('p.item-meta a.voteplus').text().split(' ')[1])
         down = int(message('p.item-meta a.voteminus').text().split(' ')[1])
         results.append({'id': id_, 'content': entity2unicode(content),
-            'up': up, 'down': down})
+            'up': up, 'down': down,
+            'url': 'http://danstonchat.com/%i.html' % id_})
     return results
 
 @cache_page(60)
@@ -314,7 +317,8 @@ def pebkac_parse_list(url):
                 .strip()
         note = int(message('div.score span').text())
         results.append({'id': id_, 'content': entity2unicode(content),
-            'note': note})
+            'note': note, 'url': 'http://www.pebkac.fr/pebkac/%i/' % id_})
+    print repr(results)
     return results
 
 @cache_page(60 * 60)
@@ -380,7 +384,7 @@ def bash_parse_list(url):
                 .replace('<br/>', '\n')
         note = int(metadata.text().split('(')[1].split(')')[0])
         results.append({'id': id_, 'content': unescape(content),
-            'note': note})
+            'note': note, 'url': 'http://bash.org/?%i' % id_})
     return results
 
 @cache_page(60)
@@ -430,7 +434,7 @@ def xkcd_latest(request, page=None):
         try:
             data = requests.get('http://xkcd.com/%i/info.0.json' % id_).json
             results.append({'id': data['num'], 'content': data['title'] + '\n\n' + data['alt'],
-                'image': data['img']})
+                'image': data['img'], 'url': 'https://xkcd.com/%i/' % data['num']})
         finally:
             found[0] += 1
     for i in xrange((page-1)*10, (page)*10):
