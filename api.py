@@ -333,7 +333,7 @@ def pebkac_latest(request, page='1'):
             'state': {'page': page, 'previous': (page != 1), 'next': True,
                       'gotopage': True}}
 
-@cache_page(60 * 60)
+@cache_page(60) # Caching a "random" page one hour does not make sense.
 @format
 def pebkac_random(request):
     return {'quotes': pebkac_parse_list('/pebkac-aleatoires.html'),
