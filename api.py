@@ -117,7 +117,7 @@ def vdmfml_parse_list(url):
         link = message('div.date div.left_part a')
         id_ = int(link.text()[1:])
         quote_url = 'https://' + url.split('/')[2] + link.attr('href')
-        content = ''.join([x.text for x in message('a.fmllink')])
+        content = ''.join([x.text or '' for x in message('a.fmllink')])
         up = int(message('div.date div.right_part span.dyn-vote-j-data').text())
         down = int(message('div.date div.right_part span span.dyn-vote-t-data').text())
         results.append({'id': id_, 'content': entity2unicode(content),
