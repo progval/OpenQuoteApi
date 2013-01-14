@@ -154,10 +154,11 @@ def vdm_parse_list(url):
     list_ = vdmfml_parse_list('http://www.viedemerde.fr' + url)
     for quote in list_:
         try:
-            quote['content'] = quote['content'].encode('latin1', errors='ignore')
-            json.dumps(quote['content'])
+            newcontent = quote['content'].encode('latin1', errors='ignore')
+            json.dumps(newcontent)
+            quote['content'] = newcontent
         except UnicodeDecodeError:
-            quote['content'] = 'quote could not be displayed because of encoding issue.'
+            pass
     return list_
 
 @cache_page(60)
