@@ -83,9 +83,10 @@ def state_url(request):
 
     # Handle different 'top' fields selection for fml and vdm
     if state['site'] in ('vdm', 'fml') and state['mode'] == 'top':
-        if 'type' not in state or state['type'] is None:
-            state['type'] = 'week' if state['site'] == 'fml' else 'semaine'
-        if state['type'] not in ('ever', 'toujours'):
+        if 'type' not in state or state['type'] is None or \
+                state['type'] == 'null':
+            state['type'] = 'week'
+        if state['type'] != 'ever':
             url += '%s/' % state['type']
 
     if state['mode'] == 'show':
