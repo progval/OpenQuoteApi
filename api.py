@@ -138,16 +138,17 @@ def vdmfml_show(quote_url, comments_url, id_):
         'date': date,
         'up': up, 'down': down}
     d = pq(url=comments_url % id_)
-    comments = [pq(x) for x in d('div.post')]
     results = []
-    for comment in comments:
-        result = {'content': comment('p.texte').text(),
-                'author': comment('b').text(),
-                'replies': []}
-        if comment.hasClass('reply'): # It's a reply
-            results[-1]['replies'].append(result)
-        else:
-            results.append(result)
+    if list(d) != [None]: # There are comments
+        comments = [pq(x) for x in d('div.post')]
+        for comment in comments:
+            result = {'content': comment('p.texte').text(),
+                    'author': comment('b').text(),
+                    'replies': []}
+            if comment.hasClass('reply'): # It's a reply
+                results[-1]['replies'].append(result)
+            else:
+                results.append(result)
     return {'quote': quote, 'comments': results}
 
 def vdm_parse_list(url):
