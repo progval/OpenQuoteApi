@@ -367,10 +367,10 @@ def pebkac_show(request, id_):
     comments = [pq(x) for x in d('section#comments article')]
     results = []
     for comment in comments:
-        content = comment('div.text').text()
-        author = comment('header .author').text()
-        date = comment('footer div.time time').text()[2:]
-        results.append({'content': content, 'author': author, 'replies': []})
+        com_content = comment('div.text').text()
+        com_author = comment('header .author').text()
+        com_date = comment('footer div.time time').text()[2:]
+        results.append({'content': com_content, 'author': com_author, 'replies': []})
     return {'quote': {'content': content, 'id': id_, 'note': note, 'author': author},
             'comments': results}
 
