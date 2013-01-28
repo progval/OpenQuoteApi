@@ -366,11 +366,17 @@ def pebkac_show(request, id_):
 
     comments = [pq(x) for x in d('section#comments article')]
     results = []
+    last_comment = None # pebkac has nested comments.
     for comment in comments:
         com_content = comment('div.text').text()
         com_author = comment('header .author').text()
         com_date = comment('footer div.time time').text()[2:]
-        results.append({'content': com_content, 'author': com_author, 'replies': []})
+        result = {'content': com_content, 'author': com_author, 'replies': []}
+        if 'reply' in comment.outerHtml().split('>', 1)[0]:
+            last_comment['replies'].append(result)
+        else:
+            results.append(result)
+        last_comment = result
     return {'quote': {'content': content, 'id': id_, 'note': note, 'author': author},
             'comments': results}
 
