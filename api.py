@@ -4,19 +4,32 @@ import urllib2
 import requests
 import threading
 import HTMLParser
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest
 from htmlentitydefs import entitydefs
 import json
+import msgpack
 
 from pyquery import PyQuery as pq
 
 from django.views.decorators.cache import cache_page
 
 def format(f):
-    def newf(*args, **kwargs):
+    def newf(request, *args, **kwargs):
         if 'page' in kwargs:
             kwargs['page'] = int(kwargs['page'])
-        return HttpResponse(json.dumps(f(*args, **kwargs)), mimetype='application/json')
+        format_ = 'json'
+        if 'format' in request.GET:
+            format_ = request.GET['format']
+        if format_ == 'json':
+            serializer = json.dumps
+            mime = 'application/json'
+        elif format_ == 'msgpack':
+            serializer = msgpack.packb
+            mime = 'application/x-msgpack'
+        else:
+            return HttpResponseBadRequest(
+                    'Valid formats are json and msgpack, not %s' % format_)
+        return HttpResponse(serializer(f(request, *args, **kwargs)), mimetype=mime)
     return newf
 
 def entity2unicode(text):
