@@ -101,6 +101,8 @@ def state_url(request):
             state['type'] = 'week'
         if state['type'] != 'ever':
             url += '%s/' % state['type']
+    state['site_id'] = state['site']
+    state['site_name'] = SITES[state['site']]
 
     if state['mode'] == 'show':
         if 'id' not in state:
