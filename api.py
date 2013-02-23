@@ -1,6 +1,7 @@
 import os
 import time
 import urllib2
+import operator
 import requests
 import threading
 import HTMLParser
@@ -48,19 +49,20 @@ unescape = HTMLParser.HTMLParser().unescape
 
 ############
 
-SITES = map(lambda x:dict(zip(('id', 'name'), x)), (
+SITES = (
         ('dtc', 'Dans ton chat'),
         ('pebkac', 'Pebkac'),
         ('vdm', 'Vie de merde'),
         ('fml', 'Fuck my life'),
         ('bash', 'bash.org'),
         ('xkcd', 'xkcd'),
-        ))
+        )
+SITES_DICT = dict(map(lambda x:(x[0], x[1:]), SITES))
 FIELDS = ['site', 'mode', 'type', 'page', 'id']
 
 @format
 def list_sites(request):
-    return SITES
+    return map(lambda x:dict(zip(('id', 'name'), x)), SITES)
 
 @format
 def client_version(request, client):
@@ -100,7 +102,7 @@ def state_url(request):
     if 'site' not in state:
         return {'status': 'error', 'message': 'Missing fields.',
                 'data': ['site']}
-    if state['site'] not in SITES:
+    if state['site'] not in SITES_DICT:
         return {'status': 'error', 'message': 'No \'%s\' is not a valid site.'%
                 state['site']}
 
@@ -118,7 +120,7 @@ def state_url(request):
         if state['type'] != 'ever':
             url += '%s/' % state['type']
     state['site_id'] = state['site']
-    state['site_name'] = SITES[state['site']]
+    state['site_name'] = SITES_DICT[state['site']]
 
     if state['mode'] == 'show':
         if 'id' not in state:
