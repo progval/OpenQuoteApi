@@ -49,19 +49,19 @@ unescape = HTMLParser.HTMLParser().unescape
 
 ############
 
-SITES = {
-        'dtc': 'Dans ton chat',
-        'pebkac': 'Pebkac',
-        'vdm': 'Vie de merde',
-        'fml': 'Fuck my life',
-        'bash': 'bash.org',
-        'xkcd': 'xkcd',
-        }
+SITES = map(lambda x:dict(zip(('id', 'name'), x)), (
+        ('dtc', 'Dans ton chat'),
+        ('pebkac', 'Pebkac'),
+        ('vdm', 'Vie de merde'),
+        ('fml', 'Fuck my life'),
+        ('bash', 'bash.org'),
+        ('xkcd', 'xkcd'),
+        ))
 FIELDS = ['site', 'mode', 'type', 'page', 'id']
 
 @format
 def list_sites(request):
-    return [{'id': x, 'name': y} for (x,y) in SITES.iteritems()]
+    return SITES
 
 
 @format
