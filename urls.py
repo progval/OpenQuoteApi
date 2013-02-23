@@ -6,6 +6,7 @@ urlpatterns = patterns('',
         url('^$', list_sites),
 
         url('^state/url/$', state_url),
+        url('^(?P<id_>vdm|fml|dtc|pebkac|bash|xkcd)/logo.png$', logo),
 
         url('^vdm/quotes/latest/$', vdm_latest),
         url('^vdm/quotes/latest/(?P<page>[0-9]+)?/$', vdm_latest),

@@ -1,10 +1,10 @@
+import os
 import time
-import PIL
 import urllib2
 import requests
 import threading
 import HTMLParser
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
 from htmlentitydefs import entitydefs
 import json
 import msgpack
@@ -19,7 +19,6 @@ def format(f):
             kwargs['page'] = int(kwargs['page'])
         format_ = 'json'
         while 'format' in request.GET:
-            print repr(request.GET['format'])
             format_ = request.GET['format']
             request.GET._mutable = True
             del request.GET['format']
@@ -63,6 +62,13 @@ FIELDS = ['site', 'mode', 'type', 'page', 'id']
 def list_sites(request):
     return SITES
 
+LOGO_PATH = os.path.join(os.path.dirname(__file__), 'logos')
+def logo(request, id_):
+    path = os.path.join(LOGO_PATH, id_ + '.png')
+    if os.path.isfile(path):
+        return HttpResponse(open(path, 'r').read(), mimetype='image/png')
+    else:
+        return HttpResponseNotFound()
 
 @format
 def state_url(request):
@@ -343,7 +349,6 @@ def pebkac_parse_list(url):
         note = int(message('div.score span').text())
         results.append({'id': id_, 'content': entity2unicode(content),
             'note': note, 'url': 'http://www.pebkac.fr/pebkac/%i/' % id_})
-    print repr(results)
     return results
 
 @cache_page(60 * 60)
