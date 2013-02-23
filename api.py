@@ -18,8 +18,11 @@ def format(f):
         if 'page' in kwargs:
             kwargs['page'] = int(kwargs['page'])
         format_ = 'json'
-        if 'format' in request.GET:
+        while 'format' in request.GET:
+            print repr(request.GET['format'])
             format_ = request.GET['format']
+            request.GET._mutable = True
+            del request.GET['format']
         if format_ == 'json':
             serializer = json.dumps
             mime = 'application/json'
