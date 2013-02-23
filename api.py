@@ -62,6 +62,13 @@ FIELDS = ['site', 'mode', 'type', 'page', 'id']
 def list_sites(request):
     return SITES
 
+@format
+def client_version(request, client):
+    if client == 'AndQuote':
+        return '0.3'
+    else:
+        return 'unknown'
+
 LOGO_PATH = os.path.join(os.path.dirname(__file__), 'logos')
 def logo(request, id_):
     path = os.path.join(LOGO_PATH, id_ + '.png')

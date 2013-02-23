@@ -4,6 +4,7 @@ from openquoteapi.api import *
 
 urlpatterns = patterns('',
         url('^$', list_sites),
+        url('^clients/(?P<client>[^/]+)/version/', client_version),
 
         url('^state/url/$', state_url),
         url('^(?P<id_>vdm|fml|dtc|pebkac|bash|xkcd)/logo.png$', logo),
