@@ -7,7 +7,7 @@ urlpatterns = patterns('',
         url('^clients/(?P<client>[^/]+)/version/', client_version),
 
         url('^state/url/$', state_url),
-        url('^(?P<id_>vdm|fml|dtc|pebkac|bash|xkcd)/logo.png$', logo),
+        url('^(?P<id_>vdm|fml|dtc|pebkac|wkp|bash|xkcd)/logo.png$', logo),
 
         url('^vdm/quotes/latest/$', vdm_latest),
         url('^vdm/quotes/latest/(?P<page>[0-9]+)?/$', vdm_latest),
@@ -33,6 +33,13 @@ urlpatterns = patterns('',
         url('^pebkac/quotes/random/$', pebkac_random),
         url('^pebkac/quotes/top/$', pebkac_top),
         url('^pebkac/quotes/show/(?P<id_>[0-9]+)/', pebkac_show),
+
+        url('^wkp/quotes/latest/$', wkp_latest),
+        url('^wkp/quotes/latest/(?P<page>[0-9]+)?/$', wkp_latest),
+        url('^wkp/quotes/random/$', wkp_random),
+        url('^wkp/quotes/top/$', wkp_top),
+        url('^wkp/quotes/top/(?P<page>[0-9]+)?/$', wkp_top),
+        url('^wkp/quotes/show/(?P<id_>[0-9]+)/', wkp_show),
 
         url('^bash/quotes/latest/$', bash_latest),
         url('^bash/quotes/latest/(?P<page>[0-9]+)?/$', bash_latest),

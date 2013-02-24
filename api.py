@@ -38,6 +38,7 @@ def format(f):
 def entity2unicode(text):
     for (entity, iso) in entitydefs.iteritems():
         text = text.replace('&%s;' % entity, iso.decode('iso-8859-1'))
+    text = text.replace('&#13;', ' ')
     return text
 
 def recursive_comment_encoder(comments, encoding):
@@ -52,6 +53,7 @@ unescape = HTMLParser.HTMLParser().unescape
 SITES = (
         ('dtc', 'Dans ton chat'),
         ('pebkac', 'Pebkac'),
+        ('wkp', 'Wikipourri'),
         ('vdm', 'Vie de merde'),
         ('fml', 'Fuck my life'),
         ('bash', 'bash.org'),
@@ -136,7 +138,7 @@ def state_url(request):
                     'data': ['id']}
 
     # Append the page number, if any
-    if state['mode'] not in ('top', 'random') and 'page' in state:
+    if state['mode'] not in ('random',) and 'page' in state:
         url += '%s/' % state['page']
 
     return {'status': 'ok', 'url': url, 'state': state}
@@ -413,6 +415,84 @@ def pebkac_show(request, id_):
             'comments': results}
 
 
+############
+
+def wkp_pq(url):
+    opener = urllib2.build_opener()
+    opener.addheaders = [('User-agent', 'OpenQuoteApi')]
+    html = opener.open(url).read()
+    return pq(html)
+
+def wkp_parse(message, id_, top=False):
+    content = message('p.text').html() \
+            .split('<strong>', 1)[1]
+    if top:
+        content = content.replace('<a href="/def.php?id=%i">' % id_, '') \
+                .replace('</a></strong><br/>', '\n') \
+                .split('. ', 1)[1]
+    else:
+        content = content.replace('</strong></a><br/>', '\n')
+    up = int(message('p.vote span#vote%i_O strong' % id_).text())
+    down = int(message('p.vote span#vote%i_N strong' % id_).text())
+    return {'id': id_, 'content': entity2unicode(content) + '\n',
+        'up': up, 'down': down, 'url': 'http://www.wikipourri.com' + message('p a').attr('href')}
+
+def wkp_parse_list(url, top=False):
+    d = wkp_pq(url='http://m.wikipourri.com' + url)
+    messages = [pq(x) for x in d('ul.content li')]
+    results = []
+    for message in messages:
+        id_ = int(message('p.text a').attr('href').split('=')[1])
+        results.append(wkp_parse(message, id_, top))
+    return results
+
+@cache_page(60)
+@format
+def wkp_latest(request, page='1'):
+    page = int(page)
+    return {'quotes': wkp_parse_list('/?page=%i' % page),
+            'state': {'page': page, 'previous': (page != 1), 'next': True,
+                      'gotopage': True}}
+
+@cache_page(60) # Caching a "random" page one hour does not make sense.
+@format
+def wkp_random(request):
+    return {'quotes': wkp_parse_list('/?type=shaker'),
+            'state': {'page': 1, 'previous': False, 'next': False,
+                      'gotopage': False}}
+
+@cache_page(60)
+@format
+def wkp_top(request, page='1'):
+    page = int(page)
+    return {'quotes': wkp_parse_list('/?type=top&page=%i' % page, True),
+            'state': {'page': page, 'previous': (page != 1), 'next': True,
+                      'gotopage': True}}
+
+@cache_page(60)
+@format
+def wkp_show(request, id_):
+    id_ = int(id_)
+    d = wkp_pq(url='http://m.wikipourri.com/def.php?id=%i' % id_)
+    message = pq(d('ul.content li'))
+    quote = wkp_parse(message, id_)
+    quote['author'] = message('p.text span.pseudo').text() \
+            .replace(u'Post\u00e9 par ', '')
+    quote['content'] = quote['content'].split('</strong>', 1)[0] + \
+            quote['content'].split('</span>', 1)[1].replace('<br/>', '\n')
+
+
+    comments = (lambda x:zip(x[1::2], x[2::2]))([pq(x) for x in d('ul.content li p.text span')])
+    results = []
+    last_comment = None # wkp has nested comments.
+    for metadata, content in comments:
+        com_content = content('i').text()
+        com_data, com_author = metadata.text().split(u' - Post\u00e9 par ')
+        result = {'content': com_content, 'author': com_author, 'replies': []}
+        results.append(result)
+        last_comment = result
+    return {'quote': quote,
+            'comments': results}
 
 
 ############
