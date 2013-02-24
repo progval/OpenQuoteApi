@@ -69,7 +69,7 @@ def list_sites(request):
 @format
 def client_version(request, client):
     if client == 'AndQuote':
-        return '0.3.2'
+        return '0.3.3'
     else:
         return 'unknown'
 
