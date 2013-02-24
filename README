@@ -19,7 +19,8 @@ For the moment, the API is read-only.
 For the URL schema, see urls.py, it should be clear enough.
 
 The output format is JSON. I don't think it needs any documentation,
-as it is easily human-readable.
+as it is easily human-readable. You can also get MessagePack data
+instead of JSON by adding ?format=msgpack to the URL.
 
 The /state/url/ URL is given GET parameters, and produces an URL. It is
 not really part of the API, but it helps to format a clean URL,
