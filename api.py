@@ -200,6 +200,7 @@ def vdm_parse_list(url):
 @cache_page(60)
 @format
 def vdm_latest(request, page=1):
+    page = int(page)
     return {'quotes': vdm_parse_list('/?page=%i' % (page-1)),
             'state': {'page': page, 'previous': (page != 1), 'next': True,
                       'gotopage': True}}
@@ -213,12 +214,12 @@ def vdm_random(request):
 
 @cache_page(60)
 @format
-def vdm_top(request, type_='week'):
+def vdm_top(request, type_='week', page='1'):
     if type_ == 'ever':
-        quotes = vdm_parse_list('/tops/top/')
+        quotes = vdm_parse_list('/tops/top/', page)
     else:
         types = {'day': 'jour', 'week': 'semaine', 'month': 'mois'}
-        quotes = vdm_parse_list('/tops/top/%s' % types[type_])
+        quotes = vdm_parse_list('/tops/top/%s' % types[type_], page)
     return {'quotes': quotes,
             'state': {'page': 1, 'previous': False, 'next': False,
                       'gotopage': False}}
@@ -254,11 +255,11 @@ def fml_random(request):
 
 @cache_page(60)
 @format
-def fml_top(request, type_='week'):
+def fml_top(request, type_='week', page='1'):
     if type_ == 'ever':
-        quotes =  fml_parse_list('/tops/top/')
+        quotes =  fml_parse_list('/tops/top/', page)
     else:
-        quotes = fml_parse_list('/tops/top/%s' % type_)
+        quotes = fml_parse_list('/tops/top/%s' % type_, page)
     return {'quotes': quotes,
             'state': {'page': 1, 'previous': False, 'next': False,
                       'gotopage': False}}
@@ -307,7 +308,7 @@ def dtc_random(request):
 
 @cache_page(60)
 @format
-def dtc_top(request):
+def dtc_top(request, page='1'):
     return {'quotes': dtc_parse_list('/top50.html'),
             'state': {'page': 1, 'previous': False, 'next': False,
                       'gotopage': False}}
@@ -379,10 +380,11 @@ def pebkac_random(request):
 
 @cache_page(60 * 60)
 @format
-def pebkac_top(request):
-    return {'quotes': pebkac_parse_list('/index.php?p=top'),
-            'state': {'page': 1, 'previous': False, 'next': False,
-                      'gotopage': False}}
+def pebkac_top(request, page='1'):
+    page = int(page)
+    return {'quotes': pebkac_parse_list('/top/week/%i/' % page),
+            'state': {'page': 1, 'previous': (page != 1), 'next': True,
+                      'gotopage': True}}
 
 @cache_page(60 * 60)
 @format
@@ -533,7 +535,7 @@ def bash_random(request, great_only=False):
 
 @cache_page(60)
 @format
-def bash_top(request):
+def bash_top(request, page='1'):
     return {'quotes': bash_parse_list('/?top'),
             'state': {'page': 1, 'previous': False, 'next': False,
                       'gotopage': False}}
