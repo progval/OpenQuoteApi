@@ -55,4 +55,5 @@ urlpatterns = patterns('',
         url('^xkcd/quotes/latest/$', xkcd_latest),
         url('^xkcd/quotes/latest/(?P<page>[0-9]+)?/$', xkcd_latest),
         url('^xkcd/quotes/show/(?P<id_>[0-9]+)/', xkcd_show),
+        url('^xkcd/quotes/random/$', xkcd_random),
         )

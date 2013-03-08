@@ -1,5 +1,6 @@
 import os
 import time
+import random
 import urllib2
 import operator
 import requests
@@ -549,12 +550,7 @@ def bash_show(request, id_):
 
 ############
 
-@cache_page(60)
-@format
-def xkcd_latest(request, page=None):
-    if page is None:
-        page = 1
-    last = requests.get('http://xkcd.com/info.0.json').json['num']
+def xkcd_load(ids):
     results = []
     found = [0]
     def load(id_):
@@ -564,11 +560,20 @@ def xkcd_latest(request, page=None):
                 'image': data['img'], 'url': 'https://xkcd.com/%i/' % data['num']})
         finally:
             found[0] += 1
-    for i in xrange((page-1)*10, (page)*10):
-        threading.Thread(target=load, args=(last-i,)).start()
+    for i in ids:
+        threading.Thread(target=load, args=(i,)).start()
     while found[0] != 10:
         time.sleep(0.1)
-    return {'quotes': results,
+    return results
+
+
+@cache_page(60)
+@format
+def xkcd_latest(request, page=None):
+    if page is None:
+        page = 1
+    last = requests.get('http://xkcd.com/info.0.json').json['num']
+    return {'quotes': xkcd_load(xrange((page-1)*10, (page)*10)),
             'state': {'page': page or 1, 'previous': (page != 1), 'next': True,
                       'gotopage': True}}
 
@@ -580,3 +585,11 @@ def xkcd_show(request, id_):
     return {'quote': {'id': id_, 'content': data['title'] + '\n\n' + data['alt'],
                       'image': data['img']},
             'comments': [], 'id': data['num']}
+
+@cache_page(60)
+@format
+def xkcd_random(request):
+    last = requests.get('http://xkcd.com/info.0.json').json['num']
+    return {'quotes': xkcd_load(random.sample(xrange(1, last), 10)),
+            'state': {'page': 1, 'previous': False, 'next': False,
+                      'gotopage': False}}
