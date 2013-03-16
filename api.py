@@ -220,7 +220,7 @@ def vdm_top(request, type_='week', page='1'):
         quotes = vdm_parse_list('/tops/top/', page)
     else:
         types = {'day': 'jour', 'week': 'semaine', 'month': 'mois'}
-        quotes = vdm_parse_list('/tops/top/%s' % types[type_], page)
+        quotes = vdm_parse_list('/tops/top/%s?page=%i' % (types[type_], page-1))
     return {'quotes': quotes,
             'state': {'page': 1, 'previous': False, 'next': False,
                       'gotopage': False}}
@@ -260,7 +260,7 @@ def fml_top(request, type_='week', page='1'):
     if type_ == 'ever':
         quotes =  fml_parse_list('/tops/top/', page)
     else:
-        quotes = fml_parse_list('/tops/top/%s' % type_, page)
+        quotes = fml_parse_list('/tops/top/%s?page=%i' % (type_, page-1))
     return {'quotes': quotes,
             'state': {'page': 1, 'previous': False, 'next': False,
                       'gotopage': False}}
