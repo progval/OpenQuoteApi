@@ -572,7 +572,10 @@ def xkcd_load(ids):
 def xkcd_latest(request, page=None):
     if page is None:
         page = 1
-    last = requests.get('http://xkcd.com/info.0.json').json['num']
+    data = requests.get('http://xkcd.com/info.0.json').json
+    if callable(data):
+        data = data()
+    last = data['num']
     return {'quotes': xkcd_load(xrange((page-1)*10, (page)*10)),
             'state': {'page': page or 1, 'previous': (page != 1), 'next': True,
                       'gotopage': True}}
@@ -582,6 +585,8 @@ def xkcd_latest(request, page=None):
 def xkcd_show(request, id_):
     id_ = int(id_)
     data = requests.get('http://xkcd.com/%i/info.0.json' % id_).json
+    if callable(data):
+        data = data()
     return {'quote': {'id': id_, 'content': data['title'] + '\n\n' + data['alt'],
                       'image': data['img']},
             'comments': [], 'id': data['num']}
@@ -589,7 +594,10 @@ def xkcd_show(request, id_):
 @cache_page(60)
 @format
 def xkcd_random(request):
-    last = requests.get('http://xkcd.com/info.0.json').json['num']
+    data = requests.get('http://xkcd.com/info.0.json').json
+    if callable(data):
+        data = data()
+    last = data['num']
     return {'quotes': xkcd_load(random.sample(xrange(1, last), 10)),
             'state': {'page': 1, 'previous': False, 'next': False,
                       'gotopage': False}}
