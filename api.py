@@ -342,40 +342,42 @@ def dtc_show(request, id_):
 
 ############
 
-def pebkac_pq(url):
+PEBKAC_API_KEY = 'mfdgz92bbhgwk890yb32wew'
+PEBKAC_LIST_LENGTH = 10
+
+def pebkac_offset_calc(page):
+    return '%i,%s' % ((page-1)*PEBKAC_LIST_LENGTH, PEBKAC_LIST_LENGTH)
+
+def pebkac_open(url):
     opener = urllib2.build_opener()
-    opener.addheaders = [('User-agent', 'OpenQuoteApi')]
-    html = opener.open(url).read()
-    return pq(html)
+    opener.addheaders = [
+            ('User-agent', 'OpenQuoteApi'),
+            ('Api-Auth-Token', PEBKAC_API_KEY)]
+    return json.load(opener.open(url))
 
 def pebkac_parse_list(url):
-    d = pebkac_pq(url='http://www.pebkac.fr' + url)
-    messages = [pq(x) for x in d('article')]
+    messages= pebkac_open('http://api.pebkac.fr' + url)
     results = []
     for message in messages:
-        id_ = int(message('header a.permalink').text()[1:])
-        content = message('p.content').html() \
-                .replace('<br/>', '') \
-                .split('<a', 1)[0] \
-                .replace('&#13;', '') \
-                .strip()
-        note = int(message('div.score span').text())
-        results.append({'id': id_, 'content': entity2unicode(content),
-            'note': note, 'url': 'http://www.pebkac.fr/pebkac/%i/' % id_})
+        results.append({'id': int(message['id']),
+            'content': message['revision_content'],
+            'note': int(message['score']),
+            'url': message['full_url'],
+            })
     return results
 
 @cache_page(60 * 60)
 @format
 def pebkac_latest(request, page='1'):
     page = int(page)
-    return {'quotes': pebkac_parse_list('/index.php?page=%i' % page),
+    return {'quotes': pebkac_parse_list('/latest/' + pebkac_offset_calc(page)),
             'state': {'page': page, 'previous': (page != 1), 'next': True,
                       'gotopage': True}}
 
 @cache_page(60) # Caching a "random" page one hour does not make sense.
 @format
 def pebkac_random(request):
-    return {'quotes': pebkac_parse_list('/pebkac-aleatoires.html'),
+    return {'quotes': pebkac_parse_list('/random/%i' % PEBKAC_LIST_LENGTH),
             'state': {'page': 1, 'previous': False, 'next': False,
                       'gotopage': False}}
 
@@ -383,7 +385,7 @@ def pebkac_random(request):
 @format
 def pebkac_top(request, page='1'):
     page = int(page)
-    return {'quotes': pebkac_parse_list('/top/week/%i/' % page),
+    return {'quotes': pebkac_parse_list('/top/week/' + pebkac_offset_calc(page)),
             'state': {'page': 1, 'previous': (page != 1), 'next': True,
                       'gotopage': True}}
 
@@ -391,30 +393,22 @@ def pebkac_top(request, page='1'):
 @format
 def pebkac_show(request, id_):
     id_ = int(id_)
-    d = pebkac_pq(url='http://www.pebkac.fr/pebkac-%i.html' % id_)
-    message = pq(d('article.pebkac'))
-    content = message('p.content').html() \
-            .replace('<br/>', '') \
-            .split('<a', 1)[0] \
-            .replace('&#13;', '') \
-            .strip()
-    author = message('header span.author').text()
-    note = int(message('header div.score span').text())
+    message = pebkac_open('http://api.pebkac.fr/pebkac/%i' % id_)
 
-    comments = [pq(x) for x in d('section#comments article')]
+    comments_list = pebkac_open('http://api.pebkac.fr/pebkacComments/%i' % id_)
+    comments_dict = {}
     results = []
-    last_comment = None # pebkac has nested comments.
-    for comment in comments:
-        com_content = comment('div.text').text()
-        com_author = comment('header .author').text()
-        com_date = comment('footer div.time time').text()[2:]
-        result = {'content': com_content, 'author': com_author, 'replies': []}
-        if 'reply' in comment.outerHtml().split('>', 1)[0]:
-            last_comment['replies'].append(result)
+    for comment in comments_list:
+        new_comment = {'content': comment['content'],
+                'author': comment['user_display_name'],
+                'replies': []}
+        comments_dict[comment['id']] = new_comment
+        if comment['comment_reply_id'] == '0' or not comment['comment_reply_id']:
+            results.append(new_comment)
         else:
-            results.append(result)
-        last_comment = result
-    return {'quote': {'content': content, 'id': id_, 'note': note, 'author': author},
+            comments_dict[comment['comment_reply_id']]['replies'].append(new_comment)
+    return {'quote': {'content': message['revision_content'], 'id': id_,
+                      'note': int(message['score']), 'author': message['user_display_name']},
             'comments': results}
 
 
