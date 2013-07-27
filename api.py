@@ -1,5 +1,6 @@
 import os
 import time
+import base64
 import random
 import urllib2
 import operator
@@ -59,6 +60,7 @@ SITES = (
         ('fml', 'Fuck my life'),
         ('bash', 'bash.org'),
         ('xkcd', 'xkcd'),
+        ('chuckfr', 'Chuck Norris Facts (fr)'),
         )
 SITES_DICT = dict(map(lambda x:(x[0], x[1:]), SITES))
 FIELDS = ['site', 'mode', 'type', 'page', 'id']
@@ -595,3 +597,58 @@ def xkcd_random(request):
     return {'quotes': xkcd_load(random.sample(xrange(1, last), 10)),
             'state': {'page': 1, 'previous': False, 'next': False,
                       'gotopage': False}}
+
+
+############
+
+# Chuckfr has bad support for IDs, so we store them ourselves.
+_chuckfr_quotes = {}
+
+def chuckfr_parse(params):
+    if 'nb' not in params:
+        params['nb'] = 50
+    url = 'http://www.chucknorrisfacts.fr/api/get?data=' + \
+            ';'.join(map(lambda x:'%s:%s'%x, params.items()))
+    opener = urllib2.build_opener()
+    opener.addheaders = [('User-agent', 'OpenQuoteApi')]
+    data = json.load(opener.open(url))
+    quotes = []
+    for quote in data:
+        id_ = len(_chuckfr_quotes)
+        fact = HTMLParser.HTMLParser().unescape(quote['fact']) \
+                .replace('<br />', '') + '\n'
+        _chuckfr_quotes[id_] = fact
+        quotes.append({'id': id_,
+                      'content': fact,
+                      'score': quote['points'],
+                      'url': 'http://www.chucknorrisfacts.fr/'})
+    return quotes
+
+@cache_page(60)
+@format
+def chuckfr_latest(request, page='1'):
+    page = int(page)
+    return {'quotes': chuckfr_parse({'tri': 'last', 'page': page}),
+            'state': {'page': page, 'previous': (page != 1), 'next': True,
+                      'gotopage': True}}
+
+@cache_page(60) # Caching a "random" page one hour does not make sense.
+@format
+def chuckfr_random(request):
+    return {'quotes': chuckfr_parse({'tri': 'alea'}),
+            'state': {'page': 1, 'previous': False, 'next': False,
+                      'gotopage': False}}
+
+@cache_page(60)
+@format
+def chuckfr_top(request, page='1'):
+    page = int(page)
+    return {'quotes': chuckfr_parse({'tri': 'top', 'page': page}),
+            'state': {'page': page, 'previous': (page != 1), 'next': True,
+                      'gotopage': True}}
+
+@cache_page(60)
+@format
+def chuckfr_show(request, id_):
+    return {'quote': _chuckfr_quotes[int(id_)],
+            'comments': []}

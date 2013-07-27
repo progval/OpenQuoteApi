@@ -56,4 +56,11 @@ urlpatterns = patterns('',
         url('^xkcd/quotes/latest/(?P<page>[0-9]+)?/$', xkcd_latest),
         url('^xkcd/quotes/show/(?P<id_>[0-9]+)/', xkcd_show),
         url('^xkcd/quotes/random/$', xkcd_random),
+
+        url('^chuckfr/quotes/latest/$', chuckfr_latest),
+        url('^chuckfr/quotes/latest/(?P<page>[0-9]+)?/$', chuckfr_latest),
+        url('^chuckfr/quotes/random/$', chuckfr_random),
+        url('^chuckfr/quotes/top/$', chuckfr_top),
+        url('^chuckfr/quotes/top/(?P<page>[0-9]+)?/$', chuckfr_top),
+        url('^chuckfr/quotes/show/(?P<id_>[0-9]+)/', chuckfr_show),
         )
