@@ -1,6 +1,5 @@
 import os
 import time
-import base64
 import random
 import urllib2
 import operator
