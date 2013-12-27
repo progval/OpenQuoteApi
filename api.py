@@ -413,7 +413,8 @@ def pebkac_show(request, id_):
         else:
             comments_dict[comment['comment_reply_id']]['replies'].append(new_comment)
     return {'quote': {'content': message['revision_content'], 'id': id_,
-                      'note': int(message['score']), 'author': message['user_display_name']},
+                      'note': int(message['score']),
+                      'author': message['user_display_name'] or message['user_unregistered']},
             'comments': results}
 
 
