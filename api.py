@@ -336,7 +336,11 @@ def dtc_show(request, id_):
     results = []
     for comment in comments:
         content = comment('div.comment-content p').text()
-        author = comment('div.comment-content a').attr('href')[len('/geek/'):-len('.html')]
+        avatars = pq(comment('div.comment-content a'))
+        if avatars:
+            author = avatars[0].attrib['href'].rsplit('/', 1)[1][:-len('.html')]
+        else:
+            author = '[inconnu(e)]'
         results.append({'content': content, 'author': author, 'replies': []})
     return {'quote': quote, 'comments': results}
 
