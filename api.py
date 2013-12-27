@@ -405,7 +405,7 @@ def pebkac_show(request, id_):
     results = []
     for comment in comments_list:
         new_comment = {'content': comment['content'],
-                'author': comment['user_display_name'],
+                'author': comment['user_display_name'] or comment['user_unregistered'],
                 'replies': []}
         comments_dict[comment['id']] = new_comment
         if comment['comment_reply_id'] == '0' or not comment['comment_reply_id']:
