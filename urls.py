@@ -1,8 +1,8 @@
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 
 from openquoteapi.api import *
 
-urlpatterns = patterns('',
+urlpatterns = [
         url('^$', list_sites),
         url('^clients/(?P<client>[^/]+)/version/', client_version),
 
@@ -63,4 +63,4 @@ urlpatterns = patterns('',
         url('^chuckfr/quotes/top/$', chuckfr_top),
         url('^chuckfr/quotes/top/(?P<page>[0-9]+)?/$', chuckfr_top),
         url('^chuckfr/quotes/show/(?P<id_>[0-9]+)/', chuckfr_show),
-        )
+        ]

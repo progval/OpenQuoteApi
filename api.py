@@ -33,7 +33,7 @@ def format(f):
         else:
             return HttpResponseBadRequest(
                     'Valid formats are json and msgpack, not %s' % format_)
-        return HttpResponse(serializer(f(request, *args, **kwargs)), mimetype=mime)
+        return HttpResponse(serializer(f(request, *args, **kwargs)), content_type=mime)
     return newf
 
 def entity2unicode(text):
@@ -79,7 +79,7 @@ LOGO_PATH = os.path.join(os.path.dirname(__file__), 'logos')
 def logo(request, id_):
     path = os.path.join(LOGO_PATH, id_ + '.png')
     if os.path.isfile(path):
-        return HttpResponse(open(path, 'r').read(), mimetype='image/png')
+        return HttpResponse(open(path, 'r').read(), content_type='image/png')
     else:
         return HttpResponseNotFound()
 
@@ -179,7 +179,7 @@ def vdmfml_show(quote_url, comments_url, id_):
     if list(d) != [None]: # There are comments
         comments = [pq(x) for x in d('div.post')]
         for comment in comments:
-            result = {'content': comment('p.texte').text(),
+            result = {'content': comment('p.texte').text().replace(u'\xc3 ', u' '),
                     'author': comment('b').text(),
                     'replies': []}
             if comment.hasClass('reply'): # It's a reply
